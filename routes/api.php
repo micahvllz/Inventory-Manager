@@ -25,6 +25,7 @@ Route::delete('/categories/{id}', [CategoryController::class, 'destroy']); // De
 
 // Item Routes
 Route::get('/items', [ItemController::class, 'index']); // Retrieve all items with dynamic search by name and description
+Route::get('/items/categories', [ItemController::class, 'getItemsWithCategories']); // Retrieve all items with category details
 Route::get('/items/{id}', [ItemController::class, 'show']); // Retrieve a single item by ID
 Route::post('/items', [ItemController::class, 'store']); // Create a new item
 Route::put('/items/{id}', [ItemController::class, 'update']); // Update an existing item by ID

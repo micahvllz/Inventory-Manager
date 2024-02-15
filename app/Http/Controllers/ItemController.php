@@ -113,4 +113,29 @@ class ItemController extends Controller
 
         return response()->json(['message' => 'Item deleted'], 200);
     }
+
+    /**
+     * Retrieve a list of items with their associated category details.
+     * This method uses MongoDB's aggregation framework to perform a `$lookup`,
+     * which joins the items collection with the categories collection.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getItemsWithCategories()
+    {
+        $itemsWithCategories = Item::raw(function ($collection) {
+            return $collection->aggregate([
+                [
+                    '$lookup' => [
+                        'from' => 'categories',
+                        'localField' => 'category_id',
+                        'foreignField' => 'id',
+                        'as' => 'category'
+                    ]
+                ]
+            ]);
+        });
+
+        return response()->json($itemsWithCategories, 200);
+    }
 }
