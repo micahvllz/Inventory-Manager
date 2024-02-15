@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class ItemController extends Controller
 {
@@ -37,19 +36,15 @@ class ItemController extends Controller
     public function store(Request $request)
     {
         // Validate request data
-        $validated = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+        $validated = $request->validate([
+            'name' => 'required|string|unique:items|max:255',
             'description' => 'required|string',
-            'price' => 'required|numeric',
+            'price' => 'required|decimal:2',
             'quantity' => 'required|integer',
             'category_id' => 'required|exists:categories,id'
         ]);
 
-        if ($validated->fails()) {
-            return response()->json(['errors' => $validated->errors()], 400);
-        }
-
-        $item = Item::create($validated->validated());
+        $item = Item::create($validated);
 
         return response()->json($item, 201);
     }
@@ -63,6 +58,7 @@ class ItemController extends Controller
     public function show($id)
     {
         $item = Item::find($id);
+
         if (!$item) {
             return response()->json(['error' => 'Item not found'], 404);
         }
@@ -79,26 +75,22 @@ class ItemController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validate request data
-        $validated = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'price' => 'sometimes|numeric',
-            'quantity' => 'sometimes|integer',
-            'category_id' => 'sometimes|exists:categories,id'
-        ]);
-
-        if ($validated->fails()) {
-            return response()->json(['errors' => $validated->errors()], 400);
-        }
-
         $item = Item::find($id);
 
         if (!$item) {
             return response()->json(['error' => 'Item not found'], 404);
         }
 
-        $item->update($validated->validated());
+        // Validate request data
+        $validated = $request->validate([
+            'name' => 'string|unique:items|max:255',
+            'description' => 'string',
+            'price' => 'decimal:2',
+            'quantity' => 'integer',
+            'category_id' => 'exists:categories,id'
+        ]);
+
+        $item->update($validated);
 
         return response()->json($item, 200);
     }

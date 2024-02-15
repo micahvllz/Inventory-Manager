@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -37,16 +36,12 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         // Validate request data
-        $validated = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+        $validated = $request->validate([
+            'name' => 'required|string|unique:categories|max:255',
             'description' => 'required|string'
         ]);
 
-        if ($validated->fails()) {
-            return response()->json(['errors' => $validated->errors()], 400);
-        }
-
-        $category = Category::create($validated->validated());
+        $category = Category::create($validated);
 
         return response()->json($category, 201);
     }
@@ -60,6 +55,7 @@ class CategoryController extends Controller
     public function show($id)
     {
         $category = Category::find($id);
+
         if (!$category) {
             return response()->json(['error' => 'Category not found'], 404);
         }
@@ -76,23 +72,19 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validate request data
-        $validated = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string'
-        ]);
-
-        if ($validated->fails()) {
-            return response()->json(['errors' => $validated->errors()], 400);
-        }
-
         $category = Category::find($id);
 
         if (!$category) {
             return response()->json(['error' => 'Category not found'], 404);
         }
 
-        $category->update($validated->validated());
+        // Validate request data
+        $validated = $request->validate([
+            'name' => 'string|unique:categories|max:255',
+            'description' => 'string'
+        ]);
+
+        $category->update($validated);
 
         return response()->json($category, 200);
     }
