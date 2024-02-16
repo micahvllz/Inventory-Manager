@@ -24,7 +24,16 @@ class ItemController extends Controller
                 ->orWhere('description', 'LIKE', "%{$search}%");
         }
 
-        return response()->json($query->get(), 200);
+        $items = $query->get();
+
+        if ($items->isEmpty()) {
+            return response()->json([
+                'message' => 'No items found.',
+                'data' => $items
+            ], 200);
+        }
+
+        return response()->json($items, 200);
     }
 
     /**
@@ -35,13 +44,15 @@ class ItemController extends Controller
      */
     public function store(Request $request)
     {
+        $request->headers->set('Accept', 'application/json');
+
         // Validate request data
         $validated = $request->validate([
             'name' => 'required|string|unique:items|max:255',
             'description' => 'required|string',
             'price' => 'required|decimal:2',
             'quantity' => 'required|integer',
-            'category_id' => 'required|exists:categories,id'
+            'category_id' => 'required|exists:categories,_id'
         ]);
 
         $item = Item::create($validated);
@@ -75,6 +86,8 @@ class ItemController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->headers->set('Accept', 'application/json');
+
         $item = Item::find($id);
 
         if (!$item) {
@@ -87,7 +100,7 @@ class ItemController extends Controller
             'description' => 'string',
             'price' => 'decimal:2',
             'quantity' => 'integer',
-            'category_id' => 'exists:categories,id'
+            'category_id' => 'exists:categories,_id'
         ]);
 
         $item->update($validated);
@@ -129,8 +142,8 @@ class ItemController extends Controller
                     '$lookup' => [
                         'from' => 'categories',
                         'localField' => 'category_id',
-                        'foreignField' => 'id',
-                        'as' => 'category'
+                        'foreignField' => '_id',
+                        'as' => 'category_details'
                     ]
                 ]
             ]);

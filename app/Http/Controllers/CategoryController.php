@@ -24,7 +24,16 @@ class CategoryController extends Controller
                 ->orWhere('description', 'LIKE', "%{$search}%");
         }
 
-        return response()->json($query->get(), 200);
+        $categories = $query->get();
+
+        if ($categories->isEmpty()) {
+            return response()->json([
+                'message' => 'No categories found.',
+                'data' => $categories
+            ], 200);
+        }
+
+        return response()->json($categories, 200);
     }
 
     /**
@@ -35,6 +44,8 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $request->headers->set('Accept', 'application/json');
+
         // Validate request data
         $validated = $request->validate([
             'name' => 'required|string|unique:categories|max:255',
@@ -72,6 +83,8 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->headers->set('Accept', 'application/json');
+
         $category = Category::find($id);
 
         if (!$category) {
